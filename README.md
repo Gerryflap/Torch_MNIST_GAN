@@ -7,4 +7,4 @@ This implementation was not based on any specific paper, but does use ideas pres
 
 
 ## Results:
-![Results acquired using the default parameters](img/default_parameters.png)
+![Output for the default parameters after 21 full epochs](img/default_params.png)
