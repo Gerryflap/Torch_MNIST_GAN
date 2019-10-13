@@ -7,7 +7,7 @@ parser.add_argument("--lr", action="store", type=float, default=0.0001, help="Ch
 parser.add_argument("--h_size", action="store", type=int, default=16, help="Sets the h_size, which changes the size of the network")
 parser.add_argument("--epochs", action="store", type=int, default=100, help="Sets the number of training epochs")
 parser.add_argument("--d_steps", action="store", type=int, default=2, help="Amount of discriminator steps per generator step")
-parser.add_argument("--l_size", action="store", type=int, default=2, help="Size of the latent space")
+parser.add_argument("--l_size", action="store", type=int, default=12, help="Size of the latent space")
 parser.add_argument("--print_steps", action="store", type=int, default=50, help="Number of generator steps between prints/live view updates")
 parser.add_argument("--load_path", action="store", type=str, default=None, help="When given, loads models from LOAD_PATH folder")
 parser.add_argument("--save_path", action="store", type=str, default=None, help="When given, saves models to LOAD_PATH folder after all epochs (or every epoch)")
@@ -79,6 +79,8 @@ class MnistGenerator(torch.nn.Module):
 
     def generate_z_batch(self, batch_size):
         z = torch.normal(torch.zeros((batch_size, self.latent_size)), 1)
+        if next(self.parameters()).is_cuda:
+            z = z.cuda()
         return z
 
     def generate_batch(self, batch_size):
@@ -169,6 +171,10 @@ loss_fn = torch.nn.BCELoss()
 real_label = torch.zeros((batch_size, 1))
 fake_label = torch.ones((batch_size, 1))
 
+if args.cuda:
+    real_label = real_label.cuda()
+    fake_label = fake_label.cuda()
+
 if live_view:
     plt.ioff()
 
@@ -238,7 +244,7 @@ for epoch in range(epochs):
             plt.clf()
             plt.title("Epoch: %d, batch %d/%d"%(epoch, i, len(dataloader)))
 
-            imgs = generator(test_zs).detach().numpy()
+            imgs = generator(test_zs).detach().cpu().numpy()
 
             plot_img = np.concatenate(list(imgs), axis=2)[0, :, :]
 
