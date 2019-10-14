@@ -99,7 +99,7 @@ class MnistDiscriminator(torch.nn.Module):
         super().__init__()
 
         self.use_sine = use_sine
-        self.activ = (lambda x: F.leaky_relu(x, 0.02)) if not use_sine else torch.sin
+        self.activ = self.leaky_relu if not use_sine else torch.sin
         self.h_size = h_size
         self.conv_1 = torch.nn.Conv2d(1, h_size, kernel_size=4,  stride=1)
         self.conv_2 = torch.nn.Conv2d(h_size, h_size * 2, kernel_size=5, stride=2)
@@ -114,6 +114,10 @@ class MnistDiscriminator(torch.nn.Module):
 
         self.lin_1 = torch.nn.Linear(h_size * 4, h_size * 4)
         self.lin_2 = torch.nn.Linear(h_size * 4, 1)
+
+    @staticmethod
+    def leaky_relu(x):
+        return F.leaky_relu(x, 0.02)
 
     def forward(self, inp):
         x = self.conv_1(inp)
@@ -148,8 +152,8 @@ if args.load_path is None:
     generator = MnistGenerator(latent_size=latent_size, h_size=h_size, use_sine=args.use_sine)
     discriminator = MnistDiscriminator(h_size=h_size, use_bn=False, use_sine=args.use_sine)
 else:
-    generator = torch.load(args.load_path + "generator.pt")
-    discriminator = torch.load(args.load_path + "discriminator.pt")
+    generator = torch.load(args.load_path + "generator.pt", map_location=torch.device('cpu'))
+    discriminator = torch.load(args.load_path + "discriminator.pt", map_location=torch.device('cpu'))
 
 
 
@@ -163,8 +167,8 @@ def save_models(path):
     torch.save(optim_D.state_dict(), path+"optim_D.pt")
 
 if args.load_path is not None:
-    optim_G.load_state_dict(torch.load(args.load_path + "optim_G.pt"))
-    optim_D.load_state_dict(torch.load(args.load_path + "optim_D.pt"))
+    optim_G.load_state_dict(torch.load(args.load_path + "optim_G.pt", map_location=torch.device('cpu')))
+    optim_D.load_state_dict(torch.load(args.load_path + "optim_D.pt", map_location=torch.device('cpu')))
     print("Warning: the learning rate of the loaded optimizers will override the value given to this script")
 
 if args.cuda:
