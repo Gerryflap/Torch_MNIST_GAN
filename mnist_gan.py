@@ -140,6 +140,8 @@ if __name__ == "__main__":
     parser.add_argument("--save_every_epoch", action="store_true", default=False, help="When a save path is given, store the model after every epoch instead of only the last")
     parser.add_argument("--cuda", action="store_true", default=False, help="Enables CUDA support. The script will fail if cuda is not available")
     parser.add_argument("--use_sine", action="store_true", default=False, help="Changes all activations except the ouput of D to sin(x), which has interesting effects")
+    parser.add_argument("--use_mish", action="store_true", default=False, help="Changes all activations except the ouput of D and G to mish, which might work better")
+
 
     args = parser.parse_args()
 
@@ -168,8 +170,8 @@ if __name__ == "__main__":
 
 
     if args.load_path is None:
-        generator = MnistGenerator(latent_size=latent_size, h_size=h_size, use_sine=args.use_sine)
-        discriminator = MnistDiscriminator(h_size=h_size, use_bn=False, use_sine=args.use_sine)
+        generator = MnistGenerator(latent_size=latent_size, h_size=h_size, use_sine=args.use_sine, use_mish=args.use_mish)
+        discriminator = MnistDiscriminator(h_size=h_size, use_bn=False, use_sine=args.use_sine, use_mish=args.use_mish)
     else:
         generator = torch.load(args.load_path + "generator.pt", map_location=torch.device('cpu'))
         discriminator = torch.load(args.load_path + "discriminator.pt", map_location=torch.device('cpu'))
