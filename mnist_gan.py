@@ -13,6 +13,7 @@ parser.add_argument("--load_path", action="store", type=str, default=None, help=
 parser.add_argument("--save_path", action="store", type=str, default=None, help="When given, saves models to LOAD_PATH folder after all epochs (or every epoch)")
 parser.add_argument("--save_every_epoch", action="store_true", default=False, help="When a save path is given, store the model after every epoch instead of only the last")
 parser.add_argument("--cuda", action="store_true", default=False, help="Enables CUDA support. The script will fail if cuda is not available")
+parser.add_argument("--use_sine", action="store_true", default=False, help="Changes all activations except the ouput of D to sin(x), which has interesting effects")
 
 args = parser.parse_args()
 
@@ -43,10 +44,12 @@ dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle
 
 
 class MnistGenerator(torch.nn.Module):
-    def __init__(self, latent_size, h_size):
+    def __init__(self, latent_size, h_size, use_sine=False):
         super().__init__()
         self.latent_size = latent_size
         self.h_size = h_size
+        self.use_sine = use_sine
+        self.activ = torch.relu if not use_sine else torch.sin
 
         self.conv_1 = torch.nn.ConvTranspose2d(self.latent_size, self.h_size * 4, 4)
         self.conv_2 = torch.nn.ConvTranspose2d(self.h_size * 4, self.h_size * 2, kernel_size=5, stride=2)
@@ -62,18 +65,18 @@ class MnistGenerator(torch.nn.Module):
 
         x = self.conv_1(x)
         x = self.bn_1(x)
-        x = F.leaky_relu(x, 0.02)
+        x = self.activ(x)
 
         x = self.conv_2(x)
         x = self.bn_2(x)
-        x = F.leaky_relu(x, 0.02)
+        x = self.activ(x)
 
         x = self.conv_3(x)
         x = self.bn_3(x)
-        x = F.leaky_relu(x, 0.02)
+        x = self.activ(x)
 
         x = self.conv_4(x)
-        x = F.tanh(x)
+        x = torch.tanh(x) if not self.use_sine else torch.sin(x)
 
         return x
 
@@ -92,8 +95,11 @@ class MnistGenerator(torch.nn.Module):
 
 
 class MnistDiscriminator(torch.nn.Module):
-    def __init__(self, h_size, use_bn=False):
+    def __init__(self, h_size, use_bn=False, use_sine=False):
         super().__init__()
+
+        self.use_sine = use_sine
+        self.activ = (lambda x: F.leaky_relu(x, 0.02)) if not use_sine else torch.sin
         self.h_size = h_size
         self.conv_1 = torch.nn.Conv2d(1, h_size, kernel_size=4,  stride=1)
         self.conv_2 = torch.nn.Conv2d(h_size, h_size * 2, kernel_size=5, stride=2)
@@ -111,36 +117,36 @@ class MnistDiscriminator(torch.nn.Module):
 
     def forward(self, inp):
         x = self.conv_1(inp)
-        x = F.relu(x)
+        x = self.activ(x)
 
         x = self.conv_2(x)
         if self.use_bn:
             x = self.bn_2(x)
-        x = F.relu(x)
+        x = self.activ(x)
 
         x = self.conv_3(x)
         if self.use_bn:
             x = self.bn_3(x)
-        x = F.relu(x)
+        x = self.activ(x)
 
         x = self.conv_4(x)
         if self.use_bn:
             x = self.bn_4(x)
-        x = F.relu(x)
+        x = self.activ(x)
 
         # Flatten to vector
         x = x.view(-1, self.h_size * 4)
 
         x = self.lin_1(x)
-        x = F.relu(x)
+        x = self.activ(x)
 
         x = self.lin_2(x)
-        x = F.sigmoid(x)
+        x = torch.sigmoid(x)
         return x
 
 if args.load_path is None:
-    generator = MnistGenerator(latent_size=latent_size, h_size=h_size)
-    discriminator = MnistDiscriminator(h_size=h_size, use_bn=False)
+    generator = MnistGenerator(latent_size=latent_size, h_size=h_size, use_sine=args.use_sine)
+    discriminator = MnistDiscriminator(h_size=h_size, use_bn=False, use_sine=args.use_sine)
 else:
     generator = torch.load(args.load_path + "generator.pt")
     discriminator = torch.load(args.load_path + "discriminator.pt")
