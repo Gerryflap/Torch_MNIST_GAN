@@ -239,23 +239,24 @@ for epoch in range(epochs):
         # Update weights
         optim_D.step()
 
-        if live_view and i%args.print_steps == 0:
+        if i%args.print_steps == 0:
             print("Epoch: %d, batch %d/%d"%(epoch, i, len(dataloader)))
             print("G loss: ", g_loss.detach().item())
             print("D loss: ", d_loss.detach().item())
             print()
 
-            generator.eval()
-            discriminator.eval()
-            plt.clf()
-            plt.title("Epoch: %d, batch %d/%d"%(epoch, i, len(dataloader)))
+            if live_view:
+                generator.eval()
+                discriminator.eval()
+                plt.clf()
+                plt.title("Epoch: %d, batch %d/%d"%(epoch, i, len(dataloader)))
 
-            imgs = generator(test_zs).detach().cpu().numpy()
+                imgs = generator(test_zs).detach().cpu().numpy()
 
-            plot_img = np.concatenate(list(imgs), axis=2)[0, :, :]
+                plot_img = np.concatenate(list(imgs), axis=2)[0, :, :]
 
-            plt.imshow(plot_img, cmap='gray')
-            plt.pause(0.001)
+                plt.imshow(plot_img, cmap='gray')
+                plt.pause(0.001)
 
     if args.save_every_epoch and args.save_path:
         save_models(args.save_path)
