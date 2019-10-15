@@ -145,12 +145,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    from mnist_ds import MnistImageDataset
+    from torchvision import datasets
+    import numpy as np
 
     live_view = args.live_view
     if live_view:
         import matplotlib.pyplot as plt
-        import numpy as np
 
     batch_size = args.batch_size
     learning_rate = args.lr
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     # Number of steps taken by the discriminator for each update to the generator
     n_d_steps = args.d_steps
 
-    dataset = MnistImageDataset()
+    dataset = datasets.MNIST("data", train=True, download=True, transform=lambda img: np.array(img, dtype=np.float32))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
 
@@ -211,7 +211,8 @@ if __name__ == "__main__":
 
     test_zs = generator.generate_z_batch(8)
     for epoch in range(epochs):
-        for i, real_batch in enumerate(dataloader):
+        for i, (real_batch, _) in enumerate(dataloader):
+            real_batch = real_batch.view(-1, 1, 28, 28)
             if real_batch.size()[0] != batch_size:
                 continue
             if i%args.d_steps == 0:

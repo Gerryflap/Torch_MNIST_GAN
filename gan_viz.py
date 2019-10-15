@@ -1,9 +1,15 @@
+"""
+    GAN_viz loads a generator and allows the user to explore the latent space of this model.
+
+"""
+
 import os
 import torch
 import numpy as np
 from PIL import Image, ImageTk
-from tkinter import filedialog
+
 import tkinter as tk
+import tkinter.filedialog
 from mnist_gan import MnistGenerator, MnistDiscriminator, mish
 
 image = None
@@ -11,9 +17,9 @@ orig_img = None
 should_update = True
 
 root = tk.Tk()
-filename = filedialog.askopenfilename(initialdir="./saved_models", title="Select generator",
+filename = tk.filedialog.askopenfilename(initialdir="./saved_models", title="Select generator",
                                            filetypes=(("Pytorch model", "*.pt"), ("all files", "*.*")))
-
+root.destroy()
 generator = torch.load(filename, map_location=torch.device('cpu'))
 
 z_shape = int(generator.latent_size)
@@ -84,7 +90,7 @@ def update_canvas(iets):
     image = img
     canvas.create_image(0, 0, anchor="nw", image=image)
 
-
+root = tk.Tk()
 root.title("GAN tool")
 root.attributes('-type', 'dialog')
 
@@ -99,7 +105,6 @@ scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 def scroll_set(*args):
     print("Setting scrollbar ", args)
     scrollbar.set(*args)
-
 
 subcanvas = tk.Canvas(root, bd=0, highlightthickness=0, yscrollcommand=scroll_set, width=500, height=500)
 subframe = tk.Frame(subcanvas)
