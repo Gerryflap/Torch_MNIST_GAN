@@ -141,6 +141,7 @@ if __name__ == "__main__":
     parser.add_argument("--cuda", action="store_true", default=False, help="Enables CUDA support. The script will fail if cuda is not available")
     parser.add_argument("--use_sine", action="store_true", default=False, help="Changes all activations except the ouput of D to sin(x), which has interesting effects")
     parser.add_argument("--use_mish", action="store_true", default=False, help="Changes all activations except the ouput of D and G to mish, which might work better")
+    parser.add_argument("--img_path", action="store", type=str, default=None, help="When given, saves samples to the given directory")
 
 
     args = parser.parse_args()
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     import numpy as np
 
     live_view = args.live_view
-    if live_view:
+    if live_view or args.img_path:
         import matplotlib.pyplot as plt
 
     batch_size = args.batch_size
@@ -271,7 +272,7 @@ if __name__ == "__main__":
                 print("D loss: ", d_loss.detach().item())
                 print()
 
-                if live_view:
+                if live_view or args.img_path is not None:
                     generator.eval()
                     discriminator.eval()
                     plt.clf()
@@ -280,9 +281,13 @@ if __name__ == "__main__":
                     imgs = generator(test_zs).detach().cpu().numpy()
 
                     plot_img = np.concatenate(list(imgs), axis=2)[0, :, :]
-
                     plt.imshow(plot_img, cmap='gray')
-                    plt.pause(0.001)
+
+                    if live_view:
+                        plt.pause(0.001)
+
+                    if args.img_path is not None:
+                        plt.savefig(args.img_path + "img_%d_%d.png"%(epoch, i))
 
         if args.save_every_epoch and args.save_path:
             save_models(args.save_path)
