@@ -289,7 +289,7 @@ if __name__ == "__main__":
                         plt.pause(0.001)
 
                     if args.img_path is not None:
-                        plt.savefig(args.img_path + "img_%d_%d.png"%(epoch, i))
+                        plt.savefig(args.img_path + "img_%04d_%04d.png"%(epoch, i))
 
         if args.save_every_epoch and args.save_path:
             save_models(args.save_path)
