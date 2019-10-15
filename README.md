@@ -8,3 +8,5 @@ This implementation was not based on any specific paper, but does use ideas pres
 
 ## Results:
 ![Output for the default parameters after 21 full epochs](img/default_params.png)
+
+![Training process](img/training.flv)
