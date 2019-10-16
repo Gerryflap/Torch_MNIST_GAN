@@ -216,7 +216,6 @@ if __name__ == "__main__":
     test_zs = generator.generate_z_batch(8)
     for epoch in range(epochs):
         for i, (real_batch, _) in enumerate(dataloader):
-            print(real_batch.size(), real_batch.min(), real_batch.max())
             if real_batch.size()[0] != batch_size:
                 continue
             if i%args.d_steps == 0:
