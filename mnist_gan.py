@@ -168,7 +168,8 @@ if __name__ == "__main__":
     n_d_steps = args.d_steps
 
     dataset = datasets.MNIST("data", train=True, download=True, transform=transforms.Compose([
-                           transforms.ToTensor(),
+                            transforms.ToTensor(),
+                            transforms.Lambda(lambda img: img*2 - 1)
                        ]))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
