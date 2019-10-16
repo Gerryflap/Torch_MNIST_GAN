@@ -169,7 +169,6 @@ if __name__ == "__main__":
 
     dataset = datasets.MNIST("data", train=True, download=True, transform=transforms.Compose([
                            transforms.ToTensor(),
-                           transforms.Lambda(lambda img: (img/255.0)*2-1)       # Normalize
                        ]))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
@@ -217,6 +216,7 @@ if __name__ == "__main__":
     test_zs = generator.generate_z_batch(8)
     for epoch in range(epochs):
         for i, (real_batch, _) in enumerate(dataloader):
+            print(real_batch.size(), real_batch.min(), real_batch.max())
             if real_batch.size()[0] != batch_size:
                 continue
             if i%args.d_steps == 0:
