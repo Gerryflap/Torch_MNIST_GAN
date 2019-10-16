@@ -147,6 +147,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     from torchvision import datasets
+    from torchvision import transforms
     import numpy as np
 
     live_view = args.live_view
@@ -166,7 +167,10 @@ if __name__ == "__main__":
     # Number of steps taken by the discriminator for each update to the generator
     n_d_steps = args.d_steps
 
-    dataset = datasets.MNIST("data", train=True, download=True, transform=lambda img: np.array(img, dtype=np.float32))
+    dataset = datasets.MNIST("data", train=True, download=True, transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Lambda(lambda img: (img/255.0)*2-1)       # Normalize
+                       ]))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=8)
 
 
@@ -213,9 +217,6 @@ if __name__ == "__main__":
     test_zs = generator.generate_z_batch(8)
     for epoch in range(epochs):
         for i, (real_batch, _) in enumerate(dataloader):
-            real_batch = real_batch.view(-1, 1, 28, 28).float()/255.0
-            real_batch *= 2
-            real_batch -= 1
             if real_batch.size()[0] != batch_size:
                 continue
             if i%args.d_steps == 0:
