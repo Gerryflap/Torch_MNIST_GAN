@@ -8,11 +8,12 @@ def mish(x):
 
 
 class MnistGenerator(torch.nn.Module):
-    def __init__(self, latent_size, h_size, use_sine=False, use_mish=False):
+    def __init__(self, latent_size, h_size, use_sine=False, use_mish=False, bias=True):
         super().__init__()
         self.latent_size = latent_size
         self.h_size = h_size
         self.use_sine = use_sine
+        self.bias = bias
         if use_sine:
             self.activ = torch.sin
         elif use_mish:
@@ -20,10 +21,10 @@ class MnistGenerator(torch.nn.Module):
         else:
             self.activ = torch.relu
 
-        self.conv_1 = torch.nn.ConvTranspose2d(self.latent_size, self.h_size * 4, 4)
-        self.conv_2 = torch.nn.ConvTranspose2d(self.h_size * 4, self.h_size * 2, kernel_size=5, stride=2)
-        self.conv_3 = torch.nn.ConvTranspose2d(self.h_size * 2, self.h_size, kernel_size=5, stride=2)
-        self.conv_4 = torch.nn.ConvTranspose2d(self.h_size, 1, kernel_size=4, stride=1)
+        self.conv_1 = torch.nn.ConvTranspose2d(self.latent_size, self.h_size * 4, 4, bias=self.bias)
+        self.conv_2 = torch.nn.ConvTranspose2d(self.h_size * 4, self.h_size * 2, kernel_size=5, stride=2, bias=self.bias)
+        self.conv_3 = torch.nn.ConvTranspose2d(self.h_size * 2, self.h_size, kernel_size=5, stride=2, bias=self.bias)
+        self.conv_4 = torch.nn.ConvTranspose2d(self.h_size, 1, kernel_size=4, stride=1, bias=self.bias)
 
         self.bn_1 = torch.nn.BatchNorm2d(self.h_size * 4)
         self.bn_2 = torch.nn.BatchNorm2d(self.h_size * 2)
@@ -142,6 +143,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_sine", action="store_true", default=False, help="Changes all activations except the ouput of D to sin(x), which has interesting effects")
     parser.add_argument("--use_mish", action="store_true", default=False, help="Changes all activations except the ouput of D and G to mish, which might work better")
     parser.add_argument("--img_path", action="store", type=str, default=None, help="When given, saves samples to the given directory")
+    parser.add_argument("--no_bias_in_G", action="store_true", default=False, help="Disables biases in the Generator")
 
 
     args = parser.parse_args()
@@ -175,7 +177,7 @@ if __name__ == "__main__":
 
 
     if args.load_path is None:
-        generator = MnistGenerator(latent_size=latent_size, h_size=h_size, use_sine=args.use_sine, use_mish=args.use_mish)
+        generator = MnistGenerator(latent_size=latent_size, h_size=h_size, use_sine=args.use_sine, use_mish=args.use_mish, bias=not args.no_bias_in_G)
         discriminator = MnistDiscriminator(h_size=h_size, use_bn=False, use_sine=args.use_sine, use_mish=args.use_mish)
     else:
         generator = torch.load(args.load_path + "generator.pt", map_location=torch.device('cpu'))
