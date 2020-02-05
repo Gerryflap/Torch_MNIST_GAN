@@ -264,6 +264,8 @@ if __name__ == "__main__":
 
 
             eps = torch.randn((batch_size, 1, 1, 1))
+            if args.cuda:
+                eps = eps.cuda()
             x_hat = eps * real_batch + (1.0-eps) * fake_batch
             grad = torch.autograd.grad(discriminator(x_hat).sum(), x_hat, create_graph=True, only_inputs=True)[0]
             d_grad_loss = (torch.pow(grad, 2) - 1).mean()
