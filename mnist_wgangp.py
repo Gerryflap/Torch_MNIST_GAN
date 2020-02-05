@@ -126,7 +126,7 @@ class MnistDiscriminator(torch.nn.Module):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="MNIST DCGAN application.")
+    parser = argparse.ArgumentParser(description="MNIST WGAN-GP application.")
     parser.add_argument("--live_view", action="store_true", default=False, help="Adds a Matplotlib live view that shows samples")
     parser.add_argument("--batch_size", action="store", type=int, default=64, help="Changes the batch size, default is 64")
     parser.add_argument("--lr", action="store", type=float, default=0.0001, help="Changes the learning rate, default is 0.0001")
