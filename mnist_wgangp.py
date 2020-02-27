@@ -184,8 +184,8 @@ if __name__ == "__main__":
 
 
 
-    optim_G = torch.optim.Adam(generator.parameters(), lr=learning_rate, betas=(0.5, 0.999))
-    optim_D = torch.optim.Adam(discriminator.parameters(), lr=learning_rate)
+    optim_G = torch.optim.Adam(generator.parameters(), lr=learning_rate, betas=(0.0, 0.9))
+    optim_D = torch.optim.Adam(discriminator.parameters(), lr=learning_rate, betas=(0.0, 0.9))
 
     def save_models(path):
         torch.save(generator, path+"generator.pt")
@@ -202,15 +202,6 @@ if __name__ == "__main__":
         generator = generator.cuda()
         discriminator = discriminator.cuda()
 
-
-    loss_fn = torch.nn.BCELoss()
-
-    real_label = torch.zeros((batch_size, 1))
-    fake_label = torch.ones((batch_size, 1))
-
-    if args.cuda:
-        real_label = real_label.cuda()
-        fake_label = fake_label.cuda()
 
     if live_view:
         plt.ioff()
@@ -262,7 +253,7 @@ if __name__ == "__main__":
             # Compute losses
             d_loss = (d_fake_outputs - d_real_outputs).mean()
 
-            eps = torch.randn((batch_size, 1, 1, 1))
+            eps = torch.rand((batch_size, 1, 1, 1))
             if args.cuda:
                 eps = eps.cuda()
             x_hat = eps * real_batch + (1.0-eps) * fake_batch
